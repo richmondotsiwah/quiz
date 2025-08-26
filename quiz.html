@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Educational Management Quiz</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #2c3e50; }
+    .question { margin: 15px 0; }
+    .timer { font-weight: bold; color: red; }
+    button { padding: 8px 16px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Educational Management Quiz</h1>
+  <p>Enter your name: <input type="text" id="username"></p>
+  <p class="timer" id="timer">Time left: 10:00</p>
+  <div id="quiz"></div>
+  <button onclick="submitQuiz()">Submit</button>
+  <div id="result"></div>
+
+  <script>
+    // === QUESTIONS (21 CASE STUDIES) ===
+    const questions = [
+      { q: "A school plans to introduce ICT lessons next term. The headteacher sets clear objectives for what needs to be achieved before classes start. Which function is this?", a: "Planning" },
+      { q: "A principal groups teachers into subject departments and defines responsibilities for each group. Which function is this?", a: "Organizing" },
+      { q: "The head of school recruits new teachers and assigns them to classes based on their strengths. Which function is this?", a: "Staffing" },
+      { q: "The principal motivates teachers to adopt new teaching strategies and provides guidance on how to use them. Which function is this?", a: "Directing" },
+      { q: "At the end of the term, the headteacher prepares a report about school activities and submits it to the education board. Which function is this?", a: "Reporting" },
+      { q: "The school accountant prepares a financial plan that allocates funds to books, salaries, and building maintenance. Which function is this?", a: "Budgeting" },
+      { q: "The principal ensures the sports department, academic staff, and administration office are working together towards the school’s vision. Which function is this?", a: "Coordinating" },
+      { q: "The headteacher decides to start a school farm project and outlines steps needed to implement it. Which function is this?", a: "Planning" },
+      { q: "The vice-principal assigns duties for supervising exams to different teachers. Which function is this?", a: "Organizing" },
+      { q: "A school hires a new science teacher after reviewing applications and interviews. Which function is this?", a: "Staffing" },
+      { q: "A principal inspires teachers by recognizing their efforts publicly during assembly. Which function is this?", a: "Directing" },
+      { q: "The school head compiles exam performance and submits an analysis to the regional education office. Which function is this?", a: "Reporting" },
+      { q: "The school bursar allocates funds to buy lab equipment, pay salaries, and repair classrooms. Which function is this?", a: "Budgeting" },
+      { q: "A principal ensures class teachers, subject teachers, and PTA all work towards improved student discipline. Which function is this?", a: "Coordinating" },
+      { q: "The school leadership sets a 3-year target to improve academic results by 20%. Which function is this?", a: "Planning" },
+      { q: "A principal structures the timetable to ensure all subjects get adequate teaching periods. Which function is this?", a: "Organizing" },
+      { q: "The school identifies staff shortages and advertises vacancies for qualified teachers. Which function is this?", a: "Staffing" },
+      { q: "The principal provides direction on how to implement new national curriculum policies. Which function is this?", a: "Directing" },
+      { q: "A school compiles annual activities into a document and submits it to stakeholders. Which function is this?", a: "Reporting" },
+      { q: "The school drafts a yearly financial plan to cover tuition subsidies and infrastructure. Which function is this?", a: "Budgeting" },
+      { q: "The principal holds weekly meetings to align teaching staff, prefects, and administration. Which function is this?", a: "Coordinating" }
+    ];
+
+    let timer;
+    let shuffledQuestions = [];
+
+    // === START QUIZ ===
+    function startQuiz() {
+      shuffledQuestions = [...questions].sort(() => Math.random() - 0.5); // shuffle
+      const quizDiv = document.getElementById("quiz");
+      quizDiv.innerHTML = "";
+      shuffledQuestions.forEach((item, index) => {
+        quizDiv.innerHTML += `
+          <div class="question">
+            <p><b>Q${index + 1}:</b> ${item.q}</p>
+            <label><input type="radio" name="q${index}" value="Planning"> Planning</label><br>
+            <label><input type="radio" name="q${index}" value="Organizing"> Organizing</label><br>
+            <label><input type="radio" name="q${index}" value="Staffing"> Staffing</label><br>
+            <label><input type="radio" name="q${index}" value="Directing"> Directing</label><br>
+            <label><input type="radio" name="q${index}" value="Reporting"> Reporting</label><br>
+            <label><input type="radio" name="q${index}" value="Budgeting"> Budgeting</label><br>
+            <label><input type="radio" name="q${index}" value="Coordinating"> Coordinating</label><br>
+          </div>
+        `;
+      });
+      startTimer(600); // 600 seconds = 10 minutes
+    }
+
+    // === TIMER ===
+    function startTimer(duration) {
+      let timeLeft = duration;
+      timer = setInterval(() => {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        document.getElementById("timer").innerText =
+          `Time left: ${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+        if (--timeLeft < 0) {
+          clearInterval(timer);
+          submitQuiz();
+        }
+      }, 1000);
+    }
+
+    // === SUBMIT QUIZ ===
+    function submitQuiz() {
+      clearInterval(timer);
+      let score = 0;
+      let feedback = "<h3>Review:</h3><ul>";
+
+      shuffledQuestions.forEach((item, index) => {
+        const answer = document.querySelector(`input[name="q${index}"]:checked`);
+        if (answer && answer.value === item.a) {
+          score++;
+        } else {
+          feedback += `<li><b>Q${index + 1}:</b> ${item.q}<br>
+                       Your answer: ${answer ? answer.value : "No answer"}<br>
+                       Correct answer: <span style="color:green">${item.a}</span></li><br>`;
+        }
+      });
+
+      feedback += "</ul>";
+
+      const name = document.getElementById("username").value;
+      document.getElementById("result").innerHTML =
+        `Quiz finished! <b>${name}</b>, your score: <b>${score}/21</b><br><br>${feedback}`;
+
+      // === SEND TO GOOGLE SHEETS ===
+      fetch("YOUR_GOOGLE_APPS_SCRIPT_URL", {
+        method: "POST",
+        body: JSON.stringify({ name: name, score: score }),
+        headers: { "Content-Type": "application/json" }
+      }).then(res => console.log("Result saved to sheet!"));
+    }
+
+    // === AUTO START ===
+    window.onload = startQuiz;
+  </script>
+</body>
+</html>
